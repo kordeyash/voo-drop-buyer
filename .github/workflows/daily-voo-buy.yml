@@ -1,0 +1,27 @@
+name: Buy VOO If Price Drops
+
+on:
+  schedule:
+    - cron: '59 19 * * 1-5'  # 3:59 PM Eastern = 19:59 UTC
+  workflow_dispatch:
+
+jobs:
+  buy_voo_if_drops:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run conditional VOO buyer
+        env:
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+        run: python buy_voo.py
