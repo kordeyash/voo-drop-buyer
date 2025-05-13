@@ -1,11 +1,11 @@
 import alpaca_trade_api as tradeapi
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 import os
 
 # === Alpaca API Setup ===
-API_KEY = os.getenv("ALPACA_API_KEY")
-API_SECRET = os.getenv("ALPACA_SECRET_KEY")
+API_KEY = os.environ.get("ALPACA_API_KEY")
+API_SECRET = os.environ.get("ALPACA_SECRET_KEY")
 BASE_URL = 'https://paper-api.alpaca.markets'
 
 api = tradeapi.REST(API_KEY, API_SECRET, BASE_URL, api_version='v2')
@@ -23,10 +23,10 @@ if not calendar_today:
     print("Market is closed today (holiday or weekend). No action taken.")
     exit()
 
-# === Find Yesterday's Market Day ===
-calendar = api.get_calendar(end=today.isoformat(), limit=2)
+# === Get Last Two Trading Days ===
+calendar = api.get_calendar(start=(today - timedelta(days=10)).isoformat(), end=today.isoformat())
 if len(calendar) < 2:
-    print("Not enough historical data (need at least 2 trading days).")
+    print("Not enough historical calendar data.")
     exit()
 
 yesterday_date = calendar[-2].date
@@ -57,7 +57,7 @@ print(f"{symbol} percent change from yesterday's close: {percent_change:.2f}%")
 
 # === Trading Logic ===
 if percent_change < 0:
-    amount_to_buy_percent = abs(percent_change) * 10
+    amount_to_buy_percent = abs(percent_change) * 10  # e.g., -1% → buy 10% of 1 share
     qty_to_buy = 1.0 * (amount_to_buy_percent / 100)
 
     if qty_to_buy > 0:
